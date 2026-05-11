@@ -1,38 +1,61 @@
 # 서울시 상권분석서비스 2024 Streamlit MVP
 
-서울시 상권분석서비스 2024년 데이터를 기반으로, 행정동별 상권 현황을 시각화하고 규칙 기반 창업유망점수를 계산해 창업 후보지를 추천하는 대시보드입니다.
+## 사용한 프롬프트 공유 링크
+
+<!-- 여기에 링크 또는 요약을 작성해 주세요. -->
+
+
+
+
+
+## 데이터 (데이터와 클린징 과정) 및 시각화 결과 (차트 설명 및 인사이트)
+
+<!-- 여기에 데이터 출처, 전처리·클린징 과정, 주요 차트 해석과 인사이트를 작성해 주세요. -->
+
+
+
+
+
+---
 
 ## 프로젝트 개요
 
-- 행정동 단위 매출/점포/유동인구 통합 분석
-- 필터(분기/업종/최소 점포 수/Top N) 기반 탐색
-- 창업유망점수 기반 추천 표 + Top 5 카드
-- 로컬 CSV와 Supabase를 모두 지원하며, Supabase 실패 시 로컬 CSV fallback
-- Gemini API 기능은 현재 MVP 범위에서 제외
+서울시 상권분석서비스 2024년 행정동 단위 데이터를 **Supabase**에서 불러와 분석하는 Streamlit 대시보드입니다. 행정동별 매출·점포·유동인구를 결합하고, 규칙 기반 **창업유망점수**를 산출하여 후보 지역을 탐색할 수 있습니다. Gemini API는 포함하지 않습니다.
 
-## 사용 데이터
+### 주요 기능
 
-아래 3개 데이터(동일 스키마)를 사용합니다.
+- 분기·업종·최소 점포 수·Top N 등 **사이드바 필터**
+- KPI 카드: 총매출, 총 점포 수, 평균 점포당 매출, 평균 폐업률
+- 행정동별 **총매출** / **점포당 매출** Top N 막대그래프 (간결한 툴팁)
+- 유동인구 대비 매출 **산점도** + 평균선(점선) 및 사분면 해석 안내
+- **창업유망지역 Top N** 표·막대그래프, Top 5 **추천 카드**(강점·주의점, 전체 평균 대비 표시)
+- **창업 후보지 상세 분석**: 행정동 선택, 핵심 지표, 평균 대비 표, 업종 내 순위, 강점·주의점, 종합 판단 문구
+- **시간대별·요일별 매출 비중** 그래프 및 자동 해석 문구(해당 컬럼이 있을 때만 표시)
+- 금액·건수·비율·점수에 대한 **일관된 포맷**(억/만 원, 콤마, % 등)
 
-- `sales_2024` / `sales_2024.csv`: 추정매출(행정동)
-- `stores_2024` / `stores_2024.csv`: 점포(행정동)
-- `population_2024` / `population_2024.csv`: 길단위인구(행정동)
+## 기술 스택
+
+- Python 3.x  
+- [Streamlit](https://streamlit.io/) — UI  
+- [Pandas](https://pandas.pydata.org/), NumPy — 전처리·집계  
+- [Plotly Express](https://plotly.com/python/plotly-express/) — 시각화  
+- [Supabase Python 클라이언트](https://supabase.com/docs/reference/python/introduction) — 데이터 로딩(테이블 `range` 기반 페이지네이션)
 
 ## 폴더 구조
 
 ```text
 publicData-BusinessDistrict/
-├─ app.py
+├─ app.py                 # 대시보드 단일 진입점(로딩·전처리·점수·차트·UI)
 ├─ requirements.txt
 ├─ README.md
 ├─ .gitignore
 ├─ data/
-│  └─ .gitkeep
+│  └─ .gitkeep            # 원본 CSV는 Git에 포함하지 않음(선택·분석용)
 └─ .streamlit/
-   └─ secrets.toml
+   └─ secrets.toml        # 로컬 실행 시 Supabase 설정(저장소에 커밋하지 않음)
 ```
 
-추후 확장 예상 구조:
+추후 모듈 분리 예시:
 
 ```text
 seoul-commercial-dashboard/
@@ -40,8 +63,6 @@ seoul-commercial-dashboard/
 ├─ requirements.txt
 ├─ README.md
 ├─ .gitignore
-├─ data/
-│  └─ .gitkeep
 ├─ src/
 │  ├─ data_loader.py
 │  ├─ preprocess.py
@@ -51,40 +72,41 @@ seoul-commercial-dashboard/
    └─ secrets.toml
 ```
 
-## 로컬 CSV 방식 실행 방법
+## 사용 데이터 (스키마 요약)
 
-1. Python 환경 준비
-2. 의존성 설치
-3. Streamlit 실행
+Supabase에는 아래 **세 테이블**이 있으며, 컬럼 구조는 서울시 상권분석서비스 CSV와 동일하다고 가정합니다.
+
+| 테이블명 | 설명 |
+|---------|------|
+| `sales_2024` | 추정매출(행정동) — 시간대·요일별 매출 금액 컬럼 포함 가능 |
+| `stores_2024` | 점포(행정동) |
+| `population_2024` | 길단위인구·행정동 단위 유동인구 |
+
+앱은 위 원본 컬럼 순서를 기준으로 내부 표준 이름으로 매핑한 뒤 키로 결합합니다.
+
+## 실행 방법 (로컬)
+
+1. **저장소 클론** 후 프로젝트 루트로 이동합니다.
+
+2. 가상환경을 권장합니다.
+
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+```
+
+3. 의존성 설치:
 
 ```bash
 python -m pip install -r requirements.txt
-python -m streamlit run app.py
 ```
 
-아래 파일을 `data/` 폴더에 직접 넣어야 합니다.
+4. Supabase 접속 정보를 Streamlit secrets에 둡니다.
 
-- `data/sales_2024.csv`
-- `data/stores_2024.csv`
-- `data/population_2024.csv`
-
-앱은 CSV를 `utf-8-sig`로 먼저 읽고 실패 시 `cp949`로 재시도합니다.
-
-## Supabase 방식 실행 방법
-
-1. 동일하게 의존성 설치 및 앱 실행
-2. 사이드바에서 데이터 소스를 `Supabase`로 선택
-3. `.streamlit/secrets.toml`에 Supabase 정보 설정
-
-### Supabase 테이블명
-
-- `sales_2024`
-- `stores_2024`
-- `population_2024`
-
-### Streamlit secrets 설정 예시
-
-`.streamlit/secrets.toml` 파일에 아래 형식으로 작성:
+**파일 위치:** `.streamlit/secrets.toml` (Git에는 올리지 마세요.)
 
 ```toml
 [supabase]
@@ -92,63 +114,78 @@ url = "https://YOUR_PROJECT_ID.supabase.co"
 key = "YOUR_SUPABASE_ANON_KEY"
 ```
 
-추가 호환 형식(선택):
+아래처럼 **최상위 키**만 두어도 `app.py`에서 인식합니다.
 
 ```toml
 SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co"
 SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"
 ```
 
-## 데이터 소스 선택 및 fallback 구조
+또는 `connections.supabase` 블록의 `url`/`key` 또는 `SUPABASE_URL`/`SUPABASE_KEY` 조합도 지원합니다.
 
-- 사이드바에서 데이터 소스를 `로컬 CSV` / `Supabase` 중 선택
-- 기본값은 `로컬 CSV`
-- `Supabase` 선택 시 Supabase 조회를 우선 시도
-- 연결 실패/권한 오류/테이블 오류/secrets 누락 시 경고를 표시하고 로컬 CSV로 자동 fallback
-- fallback 이후에도 CSV가 없으면 필수 파일명을 안내하고 중단
+5. 앱 실행:
 
-## GitHub에 원본 CSV와 secrets.toml을 올리지 않는 이유
+```bash
+python -m streamlit run app.py
+```
 
-- 대용량 원본 파일은 저장소를 불필요하게 비대화시킴
-- 데이터 버전 교체가 잦아 코드와 데이터 분리 관리가 유리
-- `secrets.toml`은 접속 정보(민감정보)가 포함될 수 있어 업로드 금지
-- `.gitignore`에서 `data/*.csv`, `.streamlit/secrets.toml`, `.env`를 제외하고 `data/.gitkeep`만 추적
+브라우저에서 표시되는 주소(기본 `http://localhost:8501`)로 접속합니다.
 
-## 분석 지표
+> Supabase 조회 실패 시 로컬 CSV로 넘어가지 않습니다. secrets·네트워크·테이블 권한·RLS 설정을 확인하세요.
 
-- 점포당매출 = 당월매출 / 점포수
-- 점포당매출건수 = 당월매출건수 / 점포수
-- 유동인구당매출 = 당월매출 / 총유동인구
-- 유동인구당매출건수 = 당월매출건수 / 총유동인구
-- 객단가 = 당월매출 / 당월매출건수
-- 프랜차이즈비율 = 프랜차이즈점포수 / 점포수
+## Streamlit Cloud 배포
 
-0으로 나누는 경우는 NaN 처리합니다.
+1. GitHub에 코드를 푸시합니다 (`secrets.toml`·원본 CSV는 커밋하지 않음).
+
+2. [Streamlit Community Cloud](https://streamlit.io/cloud)에서 저장소와 브랜치를 연결하고, **앱 설정 → Secrets**에 동일한 Supabase URL·키를 TOML 형식으로 입력합니다.
+
+3. 메인 파일을 `app.py`로 지정합니다.
+
+4. 첫 실행 시 세 테이블 전량을 페이지 단위로 가져오므로 데이터 크기에 따라 로딩이 길어질 수 있습니다. `@st.cache_data(ttl=300)`으로 짧은 기간 캐시됩니다.
+
+## 파생 지표
+
+결합된 행 단위에서 다음과 같이 계산합니다(0으로 나누는 경우 NaN 처리).
+
+- **점포당매출** = 당월 매출 금액 ÷ 점포 수  
+- **점포당매출건수** = 당월 매출 건수 ÷ 점포 수  
+- **유동인구당매출** = 당월 매출 금액 ÷ 총 유동인구 수  
+- **유동인구당매출건수** = 당월 매출 건수 ÷ 총 유동인구 수  
+- **객단가** = 당월 매출 금액 ÷ 당월 매출 건수  
+- **프랜차이즈비율** = 프랜차이즈 점포 수 ÷ 점포 수 (해당 컬럼이 있을 때)
+
+집계 화면에서는 행정동별 합계·평균 등으로 요약해 KPI·차트에 사용합니다.
 
 ## 창업유망점수 계산식
 
-각 지표를 0~100 min-max 정규화 후 아래 가중합으로 계산합니다.
+각 구성 지표를 해당 필터 구간 전체에 대해 **0~100 min-max 정규화**한 뒤 가중합합니다.
 
 ```text
 창업유망점수 =
-0.35 * 점포당매출점수
-+ 0.25 * 유동인구점수
-+ 0.25 * 유동인구당매출점수
-+ 0.15 * 폐업률안정성점수
+  0.35 × 점포당매출점수
++ 0.25 × 유동인구점수
++ 0.25 × 유동인구당매출점수
++ 0.15 × 폐업률안정성점수
 ```
 
-- 폐업률안정성점수 = 100 - 폐업률정규화점수
+- **폐업률안정성점수** = 100 − (폐업률에 대한 min-max 점수)  
+- 규칙 기반 추천 문장은 위 세부 점수·평균 대비 등과 연동되어 카드·상세 분석에 표시됩니다.
 
-## 툴팁 간소화 기준
+## 툴팁·표시 규칙 (요약)
 
-- 그래프별 핵심 정보 4~6개만 노출
-- `custom_data` + `hovertemplate`로 사용자 친화적인 한글 라벨 적용
-- 금액은 억/만/원 단위로 축약
-- 비율은 `%`, 점수는 소수점 1자리 기준 표시
-- `<extra></extra>`로 불필요 trace 라벨 제거
+- Plotly 그래프는 `custom_data`와 `hovertemplate`으로 항목 수를 줄이고 한글 라벨을 사용합니다.  
+- 금액은 **억 원 / 만 원 / 원** 단위로 읽기 쉽게 표시합니다.  
+- 비율은 **%**, 점수는 소수 **한 자리** 정도로 통일합니다.  
+- `<extra></extra>`로 트레이스 이름 등 불필요한 hover 줄을 숨깁니다.
+
+## GitHub에 원본 CSV와 secrets를 올리지 않는 이유
+
+- 원본 CSV 용량이 크고 버전 교체가 잦을 수 있어 저장소와 분리하는 편이 관리에 유리합니다.  
+- Supabase URL·API 키는 공개 저장소에 포함하면 안 됩니다.  
+- `.gitignore`에서 `data/*.csv`, `.streamlit/secrets.toml`, `.env` 등을 제외하고 `data/.gitkeep`만 추적할 수 있습니다.
 
 ## 데이터 한계 및 유의사항
 
-- 본 대시보드는 행정동 단위 집계 데이터 기반
-- 임대료/권리금/실제 영업이익/개별 점포 입지 조건은 미반영
-- 추천 결과는 창업 후보지 탐색을 위한 참고 자료로 사용
+- 행정동·업종·분기 단위 **공개 통계** 기준이며, 실제 매장 단위 매출이 아닙니다.  
+- **임대료, 권리금, 실제 영업이익, 입지 세부 조건**은 반영하지 않습니다.  
+- 창업유망점수와 추천 문구는 **참고용 탐색 도구**이며, 최종 의사결정 전 현장 조사·추가 분석이 필요합니다.
