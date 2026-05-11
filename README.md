@@ -1,10 +1,14 @@
 # 서울시 상권분석서비스 2024 Streamlit MVP
 
+## Streamlit deploy 주소
+
+- https://publicdata-businessdistrict-2413640.streamlit.app/
+
 ## 사용한 프롬프트 공유 링크
 
 - ChatGPT : https://chatgpt.com/share/6a016ca4-55dc-83ec-974b-633deef40e8c
 - Cursor AI : 프롬프트를 링크 형태로 내보내기할 수 없어 .md 파일로 첨부하였습니다.
-[Cursor AI 구현 프롬프트](./prompts/cursor_prompt.md)
+[Cursor AI 구현 프롬프트](prompts/cursor_streamlit_mvp_dashboard_for_seoul.md)
 
 ## 데이터 (데이터와 클린징 과정) 및 시각화 결과 (차트 설명 및 인사이트)
 
