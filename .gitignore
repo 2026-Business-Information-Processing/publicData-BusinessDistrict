@@ -1,0 +1,6 @@
+data/*.csv
+!data/.gitkeep
+.env
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
