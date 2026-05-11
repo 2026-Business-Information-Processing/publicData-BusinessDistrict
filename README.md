@@ -92,6 +92,13 @@ url = "https://YOUR_PROJECT_ID.supabase.co"
 key = "YOUR_SUPABASE_ANON_KEY"
 ```
 
+추가 호환 형식(선택):
+
+```toml
+SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co"
+SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"
+```
+
 ## 데이터 소스 선택 및 fallback 구조
 
 - 사이드바에서 데이터 소스를 `로컬 CSV` / `Supabase` 중 선택
